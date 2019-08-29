@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tedu.model.User">
+	<!-- 添加用户操作 -->
+	<insert id="add" parameterType="com.tedu.model.User">
+		insert into t_user (
+			user_username, 
+			user_password, 
+			user_phone, 
+			user_birth, 
+			user_nickname,
+			user_status,
+		) 
+		values(
+			#{username}, 
+			#{password}, 
+			#{phone}, 
+			#{birth},
+			#{nickname},
+			#{status},
+		)
+	</insert>
+	<!-- 删除用户操作 -->
+	<delete id="delete" parameterType="int">
+		delete from t_user 
+		where 
+		user_id=#{id}
+	</delete>
+	<!-- 修改用户操作:用户名不允许修改 -->
+	<update id="update" parameterType="com.tedu.model.User">
+		update t_user set 
+			user_status=#{status}
+			
+		where 
+			user_id=#{id}
+	</update>
+	<!-- 查询用户信息 -->
+	<select id="load" parameterType="int" resultMap="userMap">
+		select * from 
+			t_user 
+		where 
+			user_id=#{id}
+	</select>
+	<!-- 获取所有用户信息 -->
+	<select id="list" resultMap="userMap">
+		select * from t_user
+	</select>
+	<!-- 用户登录 -->
+	<select id="login" parameterType="String" resultMap="userMap">
+		select * from 
+			t_user 
+		where 
+			user_username=#{username}
+	</select>
+	<resultMap type="com.tedu.model.User" id="userMap">
+		<id property="id" column="user_id"/>
+		<result property="username" column="user_username"/>
+		<result property="password" column="user_password"/>
+		<result property="phone" column="user_phone"/>
+		<result property="birth" column="user_birth"/>
+		<result property="nickname" column="user_nickname"/>
+		<result property="status" column="user_status"/>
+	</resultMap>
+</mapper>

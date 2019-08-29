@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:aop="http://www.springframework.org/schema/aop"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+		http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd">
+	<!-- 1.配置Spring注解 -->
+	<!-- 开启Spring注解 -->
+	<context:annotation-config />
+	<!-- 到哪些包下扫描注解 -->
+	<context:component-scan base-package="com.tedu"/>
+	<!-- 2.创建数据源 -->
+	<!-- 引入外部文件 -->
+	<context:property-placeholder location="classpath:db.properties"/>
+	<!-- 采用C3P0的形式创建 -->
+	<bean id="dataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource">
+		<property name="driverClass" value="${jdbc.driverClassName}"></property>
+		<property name="jdbcUrl" value="${jdbc.url}"></property>
+		<property name="user" value="${jdbc.username}"></property>
+		<property name="password" value="${jdbc.password}"></property>
+	</bean>
+	<!-- 3.创建SqlSessionFactory对象 -->
+	<bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+		<property name="dataSource" ref="dataSource"></property>
+		<property name="mapperLocations" value="classpath:com/tedu/model/*.xml"></property>
+		<property name="typeAliasesPackage" value="com.tedu.model"></property>
+	</bean>
+	<!-- 4.Spring事务处理 -->
+	<!-- 创建Spring事务管理器 -->
+	<bean id="txManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+		<property name="dataSource" ref="dataSource"></property>
+	</bean>
+	<!-- 配置事务属性 -->
+	<tx:advice id="txAdvice" transaction-manager="txManager">
+		<tx:attributes>
+			<!-- 以add,delete,update等开头的操作加入事务,并加入事务的传播行为 -->
+			<tx:method name="add*" propagation="REQUIRED"/>
+			<tx:method name="delete*" propagation="REQUIRED"/>
+			<tx:method name="update*" propagation="REQUIRED"/>
+			<!-- 其他查询操作不加事务 -->
+			<tx:method name="*" propagation="SUPPORTS" read-only="true"/>
+		</tx:attributes>
+	</tx:advice>
+	<!-- 切入到项目中 -->
+	<aop:config>
+		<aop:pointcut expression="execution(* com.tedu.dao.impl.*.*(..))" id="allMethods"/>
+		<!-- 关联切入点和事务属性 -->
+		<aop:advisor advice-ref="txAdvice" pointcut-ref="allMethods"/>
+	</aop:config>
+</beans>
